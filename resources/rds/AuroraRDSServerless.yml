@@ -2,44 +2,43 @@ Resources:
   # RDS log group, when created automatically by the serverless framework,
   # gets orphaned and is not deleted when the cloudformation stack is deleted.
   # To make sure it is deleted along with the stack,
-  # we create it manually and include it in the stack. 
+  # we create it manually and include it in the stack.
   RDSClusterLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-        LogGroupName: /aws/rds/cluster/${self:custom.stage}-cluster/postgresql
-        RetentionInDays: ${self:provider.logRetentionInDays}
+      LogGroupName: /aws/rds/cluster/${self:custom.stage}-cluster/postgresql
+      RetentionInDays: ${self:provider.logRetentionInDays}
 
   DBSubnetGroup:
     Type: 'AWS::RDS::DBSubnetGroup'
     Properties:
       DBSubnetGroupDescription: ${self:provider.stackName}-DBSubnetGroup
       SubnetIds:
-        - !Ref SubnetAPrivate	
+        - !Ref SubnetAPrivate
         - !Ref SubnetBPrivate
 
   SGIngress:
     Type: AWS::EC2::SecurityGroupIngress
     DependsOn: ClusterSecurityGroup
-    Properties: 
-      Description: "RDS port ingress Self Reference"
+    Properties:
+      Description: 'RDS port ingress Self Reference'
       FromPort: '5432'
       GroupId: !Ref ClusterSecurityGroup
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref ClusterSecurityGroup
       ToPort: '5432'
-  
+
   ClusterSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: !Ref 'AWS::StackName'
       VpcId:
         Fn::Join:
-        - ""
-        - - !Ref VPC
+          - ''
+          - - !Ref VPC
       Tags:
-      - Key: Name
-        Value: ${self:provider.stackName}-AuroraClusterSecurityGroup
-
+        - Key: Name
+          Value: ${self:provider.stackName}-AuroraClusterSecurityGroup
 
   # Info about this resource below
   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-secretsmanager-secrettargetattachment.html
@@ -54,7 +53,6 @@ Resources:
         PasswordLength: 16
         ExcludeCharacters: '"@/\'
 
-
   SecretRDSInstanceAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
     Properties:
@@ -62,26 +60,51 @@ Resources:
       TargetId: !Ref AuroraDBCluster
       TargetType: AWS::RDS::DBCluster
 
-
   AuroraDBCluster:
     Type: AWS::RDS::DBCluster
     UpdateReplacePolicy: ${self:custom.DBUpdateReplacePolicy.${self:custom.stage}, self:custom.DBUpdateReplacePolicy.default}
-    DeletionPolicy: ${self:custom.deletionPolicy.${self:custom.stage}, self:custom.deletionPolicy.default}
+    DeletionPolicy: ${self:custom.DBDeletionPolicy.${self:custom.stage}, self:custom.DBDeletionPolicy.default}
     Properties:
       DBClusterIdentifier: ${self:custom.DBClusterIdentifier}
-      # DatabaseName: ${self:custom.DatabaseName}
+      DatabaseName: ${self:custom.DatabaseName}
       Engine: aurora-postgresql
       EngineMode: serverless
-      EngineVersion: "10.7"
+      EngineVersion: '11.9'
       EnableHttpEndpoint: true
       BackupRetentionPeriod: ${self:custom.DBBackupRetentionPeriod.${self:custom.stage}, self:custom.DBBackupRetentionPeriod.default}
       DeletionProtection: ${self:custom.DBDeletionProtection.${self:custom.stage}, self:custom.DBDeletionProtection.default}
-      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref ClusterSecret, ':SecretString:username}}' ]]
-      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref ClusterSecret, ':SecretString:password}}' ]]
+      MasterUsername:
+        !Join [
+          '',
+          [
+            '{{resolve:secretsmanager:',
+            !Ref ClusterSecret,
+            ':SecretString:username}}',
+          ],
+        ]
+      MasterUserPassword:
+        !Join [
+          '',
+          [
+            '{{resolve:secretsmanager:',
+            !Ref ClusterSecret,
+            ':SecretString:password}}',
+          ],
+        ]
       DBSubnetGroupName: !Ref DBSubnetGroup
       VpcSecurityGroupIds:
-      - !Ref ClusterSecurityGroup  
+        - !Ref ClusterSecurityGroup
       ScalingConfiguration:
-        AutoPause: ${self:custom.DBautopause.${self:custom.stage}, self:custom.DBautopause.default}
-        MinCapacity: ${self:custom.MinTableThroughput}
-        MaxCapacity: ${self:custom.MaxTableThroughput}
+        AutoPause: ${self:custom.DBAutoPause.${self:custom.stage}, self:custom.DBAutoPause.default}
+        SecondsUntilAutoPause: ${self:custom.DBSecondsUntilAutoPause.${self:custom.stage}, self:custom.DBSecondsUntilAutoPause.default}
+        MinCapacity: ${self:custom.DBMinCapacity.${self:custom.stage}, self:custom.DBMinCapacity.default}
+        MaxCapacity: ${self:custom.DBMaxCapacity.${self:custom.stage}, self:custom.DBMaxCapacity.default}
+
+Outputs:
+  ClusterSecurityGroup:
+    Description: Grupo de seguridad de la base de datos creada en CloudFormation
+    Value: !Ref ClusterSecurityGroup
+
+  DBSubnetGroup:
+    Description: Grupo de subred de la base de datos creada en CloudFormation
+    Value: !Ref DBSubnetGroup

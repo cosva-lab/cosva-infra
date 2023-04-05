@@ -1,23 +1,39 @@
-service: aurora-serverless
-Description: Aurora Serverless Demo
-
-frameworkVersion: '>=1.61.0 <=1.67.0'
-
-plugins:
-  - serverless-python-requirements
-
+service: cosva-infra
+Description: Infrastructure for the COSVA project
 
 custom:
-  stage: ${opt:stage, self:provider.stage}
+  stage: ${opt:stage, 'dev'}
   region:
-    prod: us-east-2 # Ohio
-    default: us-west-2 # Oregon
-  deletionPolicy:
-    dev: Delete
-    prod: Retain
+    prod: us-east-1
+    default: us-east-1
   logRetention:
     prod: 180
     default: 14
+  DatabaseName: 'cosva${self:custom.stage}'
+  DBClusterIdentifier: ${self:custom.stage}-${self:service}
+  DBUpdateReplacePolicy:
+    dev: Delete
+    prod: Retain
+  DBDeletionPolicy:
+    dev: Delete
+    prod: Retain
+  DBBackupRetentionPeriod:
+    dev: 7
+    prod: 90
+  DBDeletionProtection:
+    dev: false
+    prod: true
+  DBAutoPause:
+    default: true
+  DBSecondsUntilAutoPause:
+    dev: 600
+    prod: 6000
+  DBMinCapacity:
+    dev: 2
+    prod: 2
+  DBMaxCapacity:
+    dev: 2
+    prod: 2
   DBClusterARN:
     Fn::Join:
       - ':'
@@ -27,20 +43,17 @@ custom:
         - 'cluster'
         - !Ref AuroraDBCluster
 
-
 provider:
   name: aws
-  runtime: python3.7
-  stage: dev
-  stackName: ${self:custom.stage}-${self:service.name}
-  region: ${self:custom.region.${self:custom.stage}, self:custom.region.default}
+  runtime: nodejs14.x
+  stage: ${self:custom.stage}
+  region: ${opt:region, 'us-east-1'}
+  stackName: ${self:service}-${self:custom.stage}
   stackTags:
-    APP: Aurora Serverless Demo
     STAGE: ${self:custom.stage}
   logs:
     restApi: true
   logRetentionInDays: ${self:custom.logRetention.${self:custom.stage}, self:custom.logRetention.default}
-
 
 functions:
   DBMigration:
@@ -53,12 +66,9 @@ functions:
     dependsOn:
       - DBMigrationLogGroup
     environment:
-      DB_CLUSTER_ARN:
-        ${self:custom.DBClusterARN}
-      DB_SECRET_ARN:
-        !Ref ClusterSecret
+      DB_CLUSTER_ARN: ${self:custom.DBClusterARN}
+      DB_SECRET_ARN: !Ref ClusterSecret
       DB_NAME: 'rds_demo_db'
-
 
 package:
   exclude:
@@ -67,7 +77,6 @@ package:
     - package.json
     - package-lock.json
     - README.md
-
 
 resources:
   - ${file(resources/stackinfo.yml)}
@@ -78,6 +87,5 @@ resources:
   # Log Groups
   - ${file(resources/loggroups/LogGroups.yml)}
   # cfn Custom Resource
-  - ${file(resources/custom/DBMigrationTrigger.yml)}
+  # - ${file(resources/custom/DBMigrationTrigger.yml)}
   - ${file(resources/custom/DBMigrationRole.yml)}
-

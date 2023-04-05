@@ -1,11 +1,10 @@
 Resources:
-  DBMirgationCustomResource:
-    Type: 'Custom::DBMirgation'
+  DBMigrationCustomResource:
+    Type: 'Custom::DBMigration'
     Version: '0.1'
     DependsOn:
-    - DBMigrationLogGroup
-    - DBMigrationLambdaFunction
+      - DBMigrationLogGroup
     Properties:
       ServiceToken:
-        Fn::GetAtt: [ DBMigrationLambdaFunction, Arn ]
+        Fn::GetAtt: [DBMigrationLambdaFunction, Arn]
       Version: 001

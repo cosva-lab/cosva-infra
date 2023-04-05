@@ -120,6 +120,36 @@ Resources:
       Egress: true
       CidrBlock: '0.0.0.0/0'
 
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Join
+            - '_'
+            - - ${self:provider.stackName}
+              - 'InternetGateway'
+
+  InternetGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTableInternetGateway:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref SubnetARouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+
+  RouteTableInternetGatewayB:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref SubnetBRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+
 Outputs:
   VPC:
     Description: VPC creada en CloudFormation

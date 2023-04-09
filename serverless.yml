@@ -19,14 +19,14 @@ custom:
     prod: Retain
   DBBackupRetentionPeriod:
     dev: 7
-    prod: 90
+    prod: 35
   DBDeletionProtection:
     dev: false
     prod: true
   DBAutoPause:
     default: true
   DBSecondsUntilAutoPause:
-    dev: 600
+    dev: 300
     prod: 6000
   DBMinCapacity:
     dev: 2
@@ -55,21 +55,6 @@ provider:
     restApi: true
   logRetentionInDays: ${self:custom.logRetention.${self:custom.stage}, self:custom.logRetention.default}
 
-functions:
-  DBMigration:
-    name: ${self:provider.stackName}-DBMigration
-    description: Executes DB Schema Migrations.
-    handler: db/db.handler
-    memorySize: 512
-    timeout: 100
-    role: DBMigrationRole
-    dependsOn:
-      - DBMigrationLogGroup
-    environment:
-      DB_CLUSTER_ARN: ${self:custom.DBClusterARN}
-      DB_SECRET_ARN: !Ref ClusterSecret
-      DB_NAME: 'rds_demo_db'
-
 package:
   exclude:
     - node_modules/**
@@ -86,6 +71,3 @@ resources:
   - ${file(resources/rds/AuroraRDSServerless.yml)}
   # Log Groups
   - ${file(resources/loggroups/LogGroups.yml)}
-  # cfn Custom Resource
-  # - ${file(resources/custom/DBMigrationTrigger.yml)}
-  - ${file(resources/custom/DBMigrationRole.yml)}

@@ -169,6 +169,7 @@ Resources:
   LambdaVPCEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
+      VpcId: !Ref VPC
       PrivateDnsEnabled: true
       ServiceName: !Sub com.amazonaws.${AWS::Region}.lambda
       SecurityGroupIds:
@@ -177,7 +178,18 @@ Resources:
         - !Ref SubnetAPrivate
         - !Ref SubnetBPrivate
       VpcEndpointType: Interface
+
+  SQSVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
       VpcId: !Ref VPC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.sqs
+      SecurityGroupIds:
+        - !Ref LambdaSecurityGroup
+      SubnetIds:
+        - !Ref SubnetAPrivate
+        - !Ref SubnetBPrivate
+      VpcEndpointType: Interface
 
 Outputs:
   VPC:

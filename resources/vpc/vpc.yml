@@ -201,3 +201,13 @@ Outputs:
   SubnetBPrivate:
     Description: Subred privada B creada en CloudFormation
     Value: !Ref SubnetBPrivate
+  SQSVPCEndpoint:
+    Description: Endpoint de SQS
+    Value: !Ref SQSVPCEndpoint
+  SQSVPCEndpointDNS:
+    Description: Endpoint de SQS
+    Value:
+      !Select [
+        '1',
+        !Split [':', !Select ['0', !GetAtt SQSVPCEndpoint.DnsEntries]],
+      ]

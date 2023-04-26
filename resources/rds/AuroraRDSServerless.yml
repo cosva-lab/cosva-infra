@@ -105,6 +105,10 @@ Outputs:
     Description: Grupo de seguridad de la base de datos creada en CloudFormation
     Value: !Ref ClusterSecurityGroup
 
+  ClusterSecret:
+    Description: Secret de la base de datos creada en CloudFormation
+    Value: !Ref ClusterSecret
+
   DBSubnetGroup:
     Description: Grupo de subred de la base de datos creada en CloudFormation
     Value: !Ref DBSubnetGroup

@@ -179,18 +179,6 @@ Resources:
         - !Ref SubnetBPrivate
       VpcEndpointType: Interface
 
-  SQSVPCEndpoint:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcId: !Ref VPC
-      ServiceName: !Sub com.amazonaws.${AWS::Region}.sqs
-      SecurityGroupIds:
-        - !Ref LambdaSecurityGroup
-      SubnetIds:
-        - !Ref SubnetAPrivate
-        - !Ref SubnetBPrivate
-      VpcEndpointType: Interface
-
 Outputs:
   VPC:
     Description: VPC creada en CloudFormation
@@ -201,13 +189,3 @@ Outputs:
   SubnetBPrivate:
     Description: Subred privada B creada en CloudFormation
     Value: !Ref SubnetBPrivate
-  SQSVPCEndpoint:
-    Description: Endpoint de SQS
-    Value: !Ref SQSVPCEndpoint
-  SQSVPCEndpointDNS:
-    Description: Endpoint de SQS
-    Value:
-      !Select [
-        '1',
-        !Split [':', !Select ['0', !GetAtt SQSVPCEndpoint.DnsEntries]],
-      ]

@@ -1,5 +1,4 @@
 service: cosva-infra
-Description: Infrastructure for the COSVA project
 
 custom:
   stage: ${opt:stage, 'dev'}
@@ -9,39 +8,6 @@ custom:
   logRetention:
     prod: 180
     default: 14
-  DatabaseName: 'cosva${self:custom.stage}'
-  DBClusterIdentifier: ${self:custom.stage}-${self:service}
-  DBUpdateReplacePolicy:
-    dev: Delete
-    prod: Retain
-  DBDeletionPolicy:
-    dev: Delete
-    prod: Retain
-  DBBackupRetentionPeriod:
-    dev: 7
-    prod: 35
-  DBDeletionProtection:
-    dev: false
-    prod: true
-  DBAutoPause:
-    default: true
-  DBSecondsUntilAutoPause:
-    dev: 300
-    prod: 6000
-  DBMinCapacity:
-    dev: 2
-    prod: 2
-  DBMaxCapacity:
-    dev: 2
-    prod: 2
-  DBClusterARN:
-    Fn::Join:
-      - ':'
-      - - 'arn:aws:rds'
-        - Ref: 'AWS::Region'
-        - Ref: 'AWS::AccountId'
-        - 'cluster'
-        - !Ref AuroraDBCluster
 
 provider:
   name: aws
@@ -65,9 +31,5 @@ package:
 
 resources:
   - ${file(resources/stackinfo.yml)}
-  # VPC
-  - ${file(resources/vpc/vpc.yml)}
-  # RDS Aurora Serverless
-  - ${file(resources/rds/AuroraRDSServerless.yml)}
   # Log Groups
   - ${file(resources/loggroups/LogGroups.yml)}

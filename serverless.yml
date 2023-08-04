@@ -8,6 +8,7 @@ custom:
   logRetention:
     prod: 180
     default: 14
+  databaseName: 'cosva${self:custom.stage}'
 
 provider:
   name: aws
@@ -31,5 +32,6 @@ package:
 
 resources:
   - ${file(resources/stackinfo.yml)}
+  - ${file(resources/DB.yml)}
   # Log Groups
   - ${file(resources/loggroups/LogGroups.yml)}
